@@ -17,6 +17,9 @@ if ($data && isset($data['precio']) && isset($data['descuento1']) && isset($data
     $descuento1 = $data['descuento1'];
     $descuento2 = $data['descuento2'];
     $descuento3 = $data['descuento3'];
+    $m2_1 = $data['m2_1'];
+    $m2_2 = $data['m2_2'];
+    $m2_3 = $data['m2_3'];
 
     // Debug: Log values before update
     error_log("Updating - Precio: $precio, Desc1: $descuento1, Desc2: $descuento2, Desc3: $descuento3");
@@ -24,13 +27,16 @@ if ($data && isset($data['precio']) && isset($data['descuento1']) && isset($data
     try {
         // Update the precios table
         $pdo = get_pdo_connection();
-        $stmt = $pdo->prepare('UPDATE precios SET precio = :precio, descuento_1 = :descuento1, descuento_2 = :descuento2, descuento_3 = :descuento3 WHERE id = :id');
+        $stmt = $pdo->prepare('UPDATE precios SET precio = :precio, descuento_1 = :descuento1, descuento_2 = :descuento2, descuento_3 = :descuento3, m2_1 = :m2_1, m2_2 = :m2_2, m2_3 = :m2_3 WHERE id = :id');
         
         $result = $stmt->execute([
             'precio' => $precio,
             'descuento1' => $descuento1,
             'descuento2' => $descuento2,
             'descuento3' => $descuento3,
+            'm2_1' => $m2_1,
+            'm2_2' => $m2_2,
+            'm2_3' => $m2_3,
             'id' => 1
         ]);
 

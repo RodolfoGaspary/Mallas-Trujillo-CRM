@@ -94,6 +94,11 @@ try {
     $subtotal_desc = (float)$subtotal * (1 - (float)$data['descuento']/100);
     $total = (float)$subtotal_desc + (float)$data['costo_adicional'];
 
+    // Add a condition to check if the total is lower than 120
+    if ($total < 120) {
+        $total = 120;
+    }
+
     $values = [
         ':subtotal' => $subtotal,
         ':subtotal_desc' => $subtotal_desc,

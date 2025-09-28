@@ -3,6 +3,7 @@ require_once __DIR__ . '/../Backend/db_connect.php';
 header('Content-Type: application/json; charset=utf-8');
 
 $q = trim($_GET['q'] ?? '');
+$qt = trim($_GET['qt'] ?? '');
 $sort = trim($_GET['sort'] ?? 'fecha_desc');
 
 try {
@@ -32,16 +33,34 @@ switch ($sort) {
         $orderBy = 'p.fecha DESC, p.id_proformas DESC';
 }
 
-$sql = "SELECT p.id_proformas AS id, c.nombre AS cliente_nombre, c.telefono, p.direccion_proformas, p.fecha, p.precio, p.created_at
+// Build WHERE clause for both name and telephone
+$whereConditions = [];
+$params = [];
+
+if (!empty($q)) {
+    $whereConditions[] = 'c.nombre LIKE :like_q';
+    $params[':like_q'] = '%' . $q . '%';
+}
+
+if (!empty($qt)) {
+    $whereConditions[] = 'c.telefono LIKE :like_qt';
+    $params[':like_qt'] = '%' . $qt . '%';
+}
+
+$sql = "SELECT p.id_proformas AS id, c.nombre AS cliente_nombre, c.telefono, p.direccion_proformas, p.fecha, p.total, p.created_at
         FROM proformas p
-        LEFT JOIN clientes c ON p.id_c_p = c.id_clientes
-        WHERE (:q = '' OR c.nombre LIKE :like_q)
-        ORDER BY " . $orderBy . "\n        LIMIT 10";
+        LEFT JOIN clientes c ON p.id_c_p = c.id_clientes";
+
+if (!empty($whereConditions)) {
+    $sql .= " WHERE " . implode(' AND ', $whereConditions);
+}
+
+$sql .= " ORDER BY " . $orderBy . " LIMIT 50;";
 
 $stmt = $pdo->prepare($sql);
-$like = '%' . $q . '%';
-$stmt->bindValue(':q', $q, PDO::PARAM_STR);
-$stmt->bindValue(':like_q', $like, PDO::PARAM_STR);
+foreach ($params as $key => $value) {
+    $stmt->bindValue($key, $value, PDO::PARAM_STR);
+}
 $stmt->execute();
 $rows = $stmt->fetchAll();
 

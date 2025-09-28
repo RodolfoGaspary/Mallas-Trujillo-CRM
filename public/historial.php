@@ -3,6 +3,7 @@ require_once __DIR__ . '/../Backend/db_connect.php';
 
 // Basic input handling
 $q = trim($_GET['q'] ?? '');
+$qt = trim($_GET['qt'] ?? '');
 
 try {
         $pdo = get_pdo_connection();
@@ -16,12 +17,12 @@ try {
 }
 
 // Query: join clientes and proformas and filter by cliente nombre (case-insensitive), order by created_at desc, limit 10
-$sql = "SELECT p.id_proformas AS id, c.nombre AS cliente_nombre, c.telefono, p.direccion_proformas, p.fecha, p.precio, p.created_at
+$sql = "SELECT p.id_proformas AS id, c.nombre AS cliente_nombre, c.telefono, p.direccion_proformas, p.fecha, p.total, p.created_at
                 FROM proformas p
                 LEFT JOIN clientes c ON p.id_c_p = c.id_clientes
                 WHERE (:q = '' OR c.nombre LIKE :like_q)
                 ORDER BY p.created_at DESC
-                LIMIT 10";
+                LIMIT 50;";
 
 $stmt = $pdo->prepare($sql);
 $like = '%' . $q . '%';
@@ -57,6 +58,10 @@ $rows = $stmt->fetchAll();
             <label for="q" class="form-label mb-1">Buscar cliente (nombre):</label>
             <input id="q" name="q" type="text" class="form-control" value="<?php echo htmlspecialchars($q); ?>" placeholder="Nombre del cliente...">
         </div>
+        <div class="mb-2">
+            <label for="qt" class="form-label mb-1">Buscar cliente (telefono):</label>
+            <input id="qt" name="qt" type="text" class="form-control" value="<?php echo htmlspecialchars($qt); ?>" placeholder="Teléfono del cliente...">
+        </div>
         <div class="d-flex align-items-center">
             <label for="sort" class="me-2 mb-0">Ordenar por:</label>
             <select id="sort" name="sort" class="form-select w-auto text-start">
@@ -66,6 +71,7 @@ $rows = $stmt->fetchAll();
                 <option value="cliente_desc">Cliente (Z → A)</option>
             </select>
         </div>
+        <hr>
     </div>
     <div class="table-responsive">
     <table class="table table-hover table-striped">
@@ -76,7 +82,7 @@ $rows = $stmt->fetchAll();
                 <th scope="col">Teléfono</th>
                 <th scope="col">Dirección Proforma</th>
                 <th scope="col">Fecha</th>
-                <th scope="col">Precio</th>
+                <th scope="col">Monto Total</th>
             </tr>
         </thead>
         <tbody>
@@ -90,14 +96,14 @@ $rows = $stmt->fetchAll();
                     <td><?php echo htmlspecialchars($r['telefono'] ?? ''); ?></td>
                     <td><?php echo htmlspecialchars($r['direccion_proformas'] ?? ''); ?></td>
                     <td><?php echo htmlspecialchars($r['fecha'] ?? ''); ?></td>
-                    <td><?php echo htmlspecialchars(number_format($r['precio'] ?? 0, 2)); ?></td>
+                    <td><?php echo htmlspecialchars(number_format($r['total'] ?? 0, 2)); ?></td>
                 </tr>
             <?php endforeach; ?>
         <?php endif; ?>
         </tbody>
     </table>
     </div>
-        <script>
+    <script>
         // Debounce helper
         function debounce(fn, wait) {
             let t;
@@ -107,12 +113,31 @@ $rows = $stmt->fetchAll();
             };
         }
 
-        const input = document.getElementById('q');
+        const nameInput = document.getElementById('q');
+        const phoneInput = document.getElementById('qt');
         const tbody = document.querySelector('table tbody');
+        const sortSelect = document.getElementById('sort');
 
-        async function fetchResults(q) {
-            const sortVal = document.getElementById('sort').value;
-            const resp = await fetch('search.php?q=' + encodeURIComponent(q) + '&sort=' + encodeURIComponent(sortVal));
+        async function fetchResults() {
+            const nameQuery = nameInput.value;
+            const phoneQuery = phoneInput.value;
+            const sortVal = sortSelect.value;
+            
+            // Build query parameters
+            let url = 'search.php?';
+            const params = new URLSearchParams();
+            
+            if (nameQuery) {
+                params.append('q', nameQuery);
+            }
+            if (phoneQuery) {
+                params.append('qt', phoneQuery);
+            }
+            params.append('sort', sortVal);
+            
+            url += params.toString();
+            
+            const resp = await fetch(url);
             if (!resp.ok) return;
             const rows = await resp.json();
             render(rows);
@@ -135,21 +160,28 @@ $rows = $stmt->fetchAll();
                                 `<td>${escape(r.telefono)}</td>` +
                                 `<td>${escape(r.direccion_proformas)}</td>` +
                                 `<td>${escape(r.fecha)}</td>` +
-                                `<td>${escape(Number(r.precio || 0).toFixed(2))}</td>`;
+                                `<td>${escape(Number(r.total || 0).toFixed(2))}</td>`;
                 tbody.appendChild(tr);
             }
         }
 
-        function escape(s){ return (s===null||s===undefined)?'':String(s).replace(/[&<>"']/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c];}); }
+        function escape(s){ 
+            return (s===null||s===undefined)?'':String(s).replace(/[&<>"']/g, function(c){
+                return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c];
+            }); 
+        }
 
-    const debounced = debounce(function(){ fetchResults(input.value); }, 250);
-    input.addEventListener('input', debounced);
-    // re-fetch when user changes sort order immediately (no debounce needed)
-    document.getElementById('sort').addEventListener('change', function(){ fetchResults(input.value); });
+        // Debounced search function
+        const debouncedSearch = debounce(fetchResults, 250);
 
-        // initial fetch
-        fetchResults(input.value);
-        </script>
+        // Event listeners
+        nameInput.addEventListener('input', debouncedSearch);
+        phoneInput.addEventListener('input', debouncedSearch);
+        sortSelect.addEventListener('change', fetchResults);
+
+        // Initial fetch
+        fetchResults();
+    </script>
     <script src="../CSS/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 </div>
 </body>

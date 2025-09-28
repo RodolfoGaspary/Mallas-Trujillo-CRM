@@ -51,7 +51,7 @@ try {
 }
 
 // Treat proforma `descuento` as a percentage (e.g. 10 for 10%)
-$descuento_pct = (float)($row['descuento'] ?? 0);
+$descuento_pct =($row['descuento'] ?? 0);
 
 if (!empty($items)) {
   $items_rows = [];
@@ -65,22 +65,22 @@ if (!empty($items)) {
   }
 
   // Summary calculations per your updated spec:
-  $precio = (float)($row['precio'] ?? 0);
-  $area = (float)($row['area_total'] ?? 0);
-  $subtotal = (float)($row['subtotal'] ?? 0);
+  $precio = ($row['precio'] ?? 0);
+  $area = ($row['area_total'] ?? 0);
+  $subtotal = ($row['subtotal'] ?? 0);
   $descuento_frac = $descuento_pct / 100.0;
-  $subtotal_desc = (float)($row['subtotal_desc'] ?? 0);
-  $costo_adicional = (float)($row['costo_adicional'] ?? 0);
+  $subtotal_desc = ($row['subtotal_desc'] ?? 0);
+  $costo_adicional = ($row['costo_adicional'] ?? 0);
   $descripcion_costo_adicional = $row['descripcion_costo_adicional'] ?? '';
 
 } else {
   // Fallback single-item behavior (older schema: proformas.id_i_p)
-  $precio = (float)($row['precio'] ?? 0);
-  $area = (float)($row['area_total'] ?? 0);
-  $subtotal = (float)($row['subtotal'] ?? 0);
+  $precio = ($row['precio'] ?? 0);
+  $area = ($row['area_total'] ?? 0);
+  $subtotal = ($row['subtotal'] ?? 0);
   $descuento_frac = $descuento_pct / 100.0;
-  $subtotal_desc = (float)($row['subtotal_desc'] ?? 0);
-  $costo_adicional = (float)($row['costo_adicional'] ?? 0);
+  $subtotal_desc = ($row['subtotal_desc'] ?? 0);
+  $costo_adicional = ($row['costo_adicional'] ?? 0);
   $descripcion_costo_adicional = $row['descripcion_costo_adicional'] ?? '';
 
   // build single-item representation for the template
@@ -108,7 +108,10 @@ if (!empty($items)) {
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="mb-0">Proforma #<?php echo $row['id_proformas']; ?></h1>
-    <a class="btn btn-secondary" href="historial.php">Volver al Historial</a>
+    <a class="btn btn-success" href="create_pdf.php?id=<?php echo $row['id_proformas']; ?>">Enviar como PDF</a>
+  </div>
+  <div class="mb-3">
+    <a class="btn btn-secondary" href="nueva.php?template=<?php echo $id; ?>">Editar Proforma</a>
   </div>
   <div class="row">
     <div class="col-md-7">
@@ -139,8 +142,8 @@ if (!empty($items)) {
               <tr>
                 <th>#</th>
                 <th>Detalle</th>
-                <th class="text-end">Alto</th>
                 <th class="text-end">Ancho</th>
+                <th class="text-end">Alto</th>
                 <th class="text-end">Área</th>
               </tr>
             </thead>
@@ -149,9 +152,9 @@ if (!empty($items)) {
                 <tr>
                   <td><?php echo $idx+1; ?></td>
                   <td><?php echo htmlspecialchars($it['detalle']); ?></td>
-                  <td class="text-end"><?php echo htmlspecialchars(number_format($it['alto'],4)); ?></td>
-                  <td class="text-end"><?php echo htmlspecialchars(number_format($it['ancho'],4)); ?></td>
-                  <td class="text-end"><?php echo htmlspecialchars(number_format($it['area'],4)); ?></td>
+                  <td class="text-end"><?php echo htmlspecialchars(number_format($it['ancho'],2)); ?></td>
+                  <td class="text-end"><?php echo htmlspecialchars(number_format($it['alto'],2)); ?></td>
+                  <td class="text-end"><?php echo htmlspecialchars(number_format($it['area'],2)); ?></td>
                 </tr>
               <?php endforeach; ?>
             </tbody>
@@ -160,23 +163,23 @@ if (!empty($items)) {
         </div>
       </div>
     </div>
-    
     <div class="col-md-5">
       <div class="card mb-3">
         <div class="card-body">
           <h5 class="card-title">Resumen de precios</h5>
-          <p class="mb-1"><strong>Precio:</strong> <span class="text-end d-flex"><?php echo htmlspecialchars(number_format($row['precio'],2)); ?></span></p><hr>
+          <p class="mb-1"><strong>Precio:</strong> <span class="text-end d-flex">S/.<?php echo htmlspecialchars(number_format($row['precio'],2)); ?></span></p><hr>
           <p class="mb-1"><strong>Area Total:</strong> <span class="text-end d-flex"><?php echo htmlspecialchars(number_format($row['area_total'],2)); ?></span></p><hr>
-          <p class="mb-1"><strong>Subtotal:</strong> <span class="text-end d-flex"><?php echo htmlspecialchars(number_format($row['subtotal'],2)); ?></span></p><hr>
+          <p class="mb-1"><strong>Subtotal:</strong> <span class="text-end d-flex">S/.<?php echo htmlspecialchars(number_format($row['subtotal'],2)); ?></span></p><hr>
           <p class="mb-1"><strong>Descuento:</strong> <span class="text-end d-flex"><?php echo htmlspecialchars(number_format($row['descuento'],2)); ?>%</span></p><hr>
-          <p class="mb-1"><strong>Subtotal con descuento:</strong> <span class="text-end d-flex"><?php echo htmlspecialchars(number_format($subtotal_desc,2)); ?></span></p><hr>
-          <p class="mb-1"><strong>Costo adicional:</strong> <span class="text-end d-flex"><?php echo htmlspecialchars(number_format($costo_adicional,2)); ?></span></p><hr>
+          <p class="mb-1"><strong>Subtotal con descuento:</strong> <span class="text-end d-flex">S/.<?php echo htmlspecialchars(number_format($subtotal_desc,2)); ?></span></p><hr>
+          <p class="mb-1"><strong>Costo adicional:</strong> <span class="text-end d-flex">S/.<?php echo htmlspecialchars(number_format($costo_adicional,2)); ?></span></p><hr>
           <p class="mb-1"><strong>Descripción costo adicional:</strong> <span class="text-start d-flex overflow-auto"><?php echo htmlspecialchars($descripcion_costo_adicional ?: '-'); ?></span></p><hr>
-          <p class="mb-1"><strong>Total:</strong> <span class="text-end d-flex"><?php echo htmlspecialchars(number_format($row['total'],2)); ?></span></p>
+          <p class="mb-1"><strong>Precio minimo de instalación:</strong> <span class="text-end d-flex">S/.120</span></p>
+          <p class="mb-1"><strong>Total:</strong> <span class="text-end d-flex">S/.<?php echo htmlspecialchars(number_format($row['total'],2)); ?></span></p>
         </div>
       </div>
     </div>
-  <script src="../CSS/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 </div>
+<script src="../CSS/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

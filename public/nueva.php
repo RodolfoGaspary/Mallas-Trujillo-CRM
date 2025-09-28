@@ -6,14 +6,66 @@ try {
     $pdo = get_pdo_connection();
     $clientsStmt = $pdo->query('SELECT id_clientes, nombre, telefono, email FROM clientes ORDER BY nombre');
     $clients = $clientsStmt->fetchAll();
-  // fetch latest precios row (to provide default precio and discount options)
-  $precioRow = null;
-  $stmtPrecio = $pdo->query('SELECT * FROM precios where id = 1');
-  $precioRow = $stmtPrecio->fetch();
+    // fetch latest precios row (to provide default precio and discount options)
+    $precioRow = null;
+    $stmtPrecio = $pdo->query('SELECT * FROM precios where id = 1');
+    $precioRow = $stmtPrecio->fetch();
 } catch (Throwable $e) {
     $clients = [];
 }
+
+$template_mode = false;
+$template_data = null;
+$template_items = [];
+
+// Check if we're using a template
+if (isset($_GET['template']) && !empty($_GET['template'])) {
+    $template_id = (int)$_GET['template'];
+    
+    try {
+        $pdo = get_pdo_connection();
+        
+        // Fetch the proforma to use as template
+        $sql = "SELECT p.*, c.nombre AS cliente_nombre, c.telefono, c.email, c.id_clientes
+                FROM proformas p
+                LEFT JOIN clientes c ON p.id_c_p = c.id_clientes
+                WHERE p.id_proformas = :id LIMIT 1";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([':id' => $template_id]);
+        $template_data = $stmt->fetch();
+        
+        if ($template_data) {
+            $template_mode = true;
+            
+            // Fetch items for this proforma
+            $items_sql = "SELECT i.detalle, i.ancho, i.alto, i.area
+                         FROM proformas_items pi
+                         JOIN items i ON pi.id_item = i.id_items
+                         WHERE pi.id_proforma = :id
+                         ORDER BY i.id_items";
+            
+            $items_stmt = $pdo->prepare($items_sql);
+            $items_stmt->execute([':id' => $template_id]);
+            $template_items = $items_stmt->fetchAll();
+        }
+    } catch (Throwable $e) {
+        // Silently fail - will just not pre-fill data
+        error_log("Error loading proforma template: " . $e->getMessage());
+    }
+}
+
+// In your PHP section, after fetching $precioRow
+$discountConfig = [
+    'discount_3' => $precioRow['descuento_3'] ?? 0,
+    'discount_2' => $precioRow['descuento_2'] ?? 0,
+    'discount_1' => $precioRow['descuento_1'] ?? 0,
+    'a_1' => $precioRow['m2_1'] ?? 0,
+    'a_2' => $precioRow['m2_2'] ?? 0,
+    'a_3' => $precioRow['m2_3'] ?? 0
+];
 ?>
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -28,118 +80,166 @@ try {
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="mb-0">Nueva proforma</h1>
   </div>
-  <form id="proformaForm">
-    <div class="card mb-3">
-      <div class="card-body">
-        <h5 class="card-title">Cliente</h5>
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Cliente existente</label>
-            <select id="clienteSelect" class="form-select">
-              <option value="">-- seleccionar o escribir --</option>
-              <?php foreach ($clients as $c): ?>
-                <option value="<?php echo htmlspecialchars($c['id_clientes']); ?>" data-nombre="<?php echo htmlspecialchars($c['nombre']); ?>" data-telefono="<?php echo htmlspecialchars($c['telefono']); ?>" data-email="<?php echo htmlspecialchars($c['email']); ?>"><?php echo htmlspecialchars($c['nombre']); ?></option>
-              <?php endforeach; ?>
-            </select>
-            <label class="form-label mt-2">Nombre</label>
-            <input id="clienteNombre" name="clienteNombre" class="form-control" placeholder="Nombre del cliente" required>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Teléfono</label>
-            <input id="clienteTelefono" name="clienteTelefono" class="form-control" placeholder="Teléfono" required>
-            <label class="form-label mt-2">Email</label>
-            <input id="clienteEmail" name="clienteEmail" class="form-control" placeholder="Email">
-          </div>
-          <div class="col-12">
-            <label class="form-label">Dirección</label>
-            <input id="direccion" name="direccion" class="form-control" placeholder="Dirección de obra" required>
-          </div>
+<form id="proformaForm">
+  <!-- No hidden field needed since we're creating new -->
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="card-title">Cliente</h5>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Cliente existente</label>
+          <select id="clienteSelect" class="form-select">
+            <option value="">-- seleccionar --</option>
+            <?php foreach ($clients as $c): ?>
+              <option value="<?php echo htmlspecialchars($c['id_clientes']); ?>" 
+                      data-nombre="<?php echo htmlspecialchars($c['nombre']); ?>" 
+                      data-telefono="<?php echo htmlspecialchars($c['telefono']); ?>" 
+                      data-email="<?php echo htmlspecialchars($c['email']); ?>"
+                      <?php if ($template_mode && $template_data['id_clientes'] == $c['id_clientes']) echo 'selected'; ?>>
+                <?php echo htmlspecialchars($c['nombre']); ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+          <label class="form-label mt-2">Nombre</label>
+          <input id="clienteNombre" name="clienteNombre" class="form-control" 
+                 placeholder="Nombre del cliente" required
+                 value="<?php echo $template_mode ? htmlspecialchars($template_data['cliente_nombre'] ?? '') : ''; ?>">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Teléfono</label>
+          <input id="clienteTelefono" name="clienteTelefono" class="form-control" 
+                 placeholder="Teléfono" required
+                 value="<?php echo $template_mode ? htmlspecialchars($template_data['telefono'] ?? '') : ''; ?>">
+          <label class="form-label mt-2">Email</label>
+          <input id="clienteEmail" name="clienteEmail" class="form-control" 
+                 placeholder="Email"
+                 value="<?php echo $template_mode ? htmlspecialchars($template_data['email'] ?? '') : ''; ?>">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Dirección</label>
+          <input id="direccion" name="direccion" class="form-control" 
+                 placeholder="Dirección de obra" required
+                 value="<?php echo $template_mode ? htmlspecialchars($template_data['direccion_proformas'] ?? '') : ''; ?>">
         </div>
       </div>
     </div>
+  </div>
 
-    <div class="card mb-3">
-      <div class="card-body">
-        <h5 class="card-title">Proforma</h5>
-        <div class="row g-3">
-          <div class="col-md-4">
-            <label class="form-label">Fecha</label>
-            <input id="fecha" name="fecha" type="date" class="form-control" required>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Precio (por unidad / m2)</label>
-            <input id="precio" name="precio" type="number" class="form-control" value="<?php echo htmlspecialchars($precioRow['precio'] ?? ''); ?>" required>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Descuento (%)</label>
-            <select id="descuento" name="descuento" class="form-select">
-              <option value="0">0%</option>
-              <?php if (!empty($precioRow)): ?>
-              <?php for ($i=1;$i<=3;$i++):
-                $col = 'descuento_' . $i;
-                if (!empty($precioRow[$col]) || $precioRow[$col] === '0' || $precioRow[$col] === 0):
-              ?>
-                <option value="<?php echo htmlspecialchars($precioRow[$col]); ?>"><?php echo htmlspecialchars($precioRow[$col]); ?>%</option>
-              <?php endif; endfor; ?>
-              <?php endif; ?>
-            </select>
-          </div>
-            <div class="col-md-4">
-              <label class="form-label">Escaleras</label>
-              <input id="escaleras" name="escaleras" type="text" class="form-control">
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Arnes</label>
-              <input id="arnes" name="arnes" type="number" class="form-control" value="0">
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Costo adicional</label>
-              <input id="costo_adicional" name="costo_adicional" type="number" class="form-control">
-            </div>
-          </div>
-          <div class="col-12">
-            <label class="form-label">Descripción costo adicional</label>
-            <textarea id="descripcion_costo_adicional" name="descripcion_costo_adicional" class="form-control" rows="4"></textarea>
-          </div>
-            <div class="col-12">
-              <label class="form-label">Detalles de instalación</label>
-              <textarea id="detalles_adicionales" name="detalles_adicionales" class="form-control" rows="4"></textarea>
-            </div>
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="card-title">Proforma</h5>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Fecha</label>
+          <input id="fecha" name="fecha" type="date" class="form-control" 
+                 value="<?php echo date('Y-m-d'); ?>" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Precio (por unidad / m2)</label>
+          <input id="precio" name="precio" type="number" class="form-control" 
+                 value="<?php echo $template_mode ? htmlspecialchars($template_data['precio'] ?? ($precioRow['precio'] ?? '')) : htmlspecialchars($precioRow['precio'] ?? ''); ?>" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Descuento (%)</label>
+          <input id="descuento" name="descuento" type="number" class="form-control"
+                 value="<?php echo $template_mode ? htmlspecialchars($template_data['descuento'] ?? '') : ''; ?>">
+        </div>
+        <div class="col-md-2 col-sm-6">
+          <label class="form-label">Área total (m2)</label>
+          <input id="area_total" name="area_total" type="text" class="form-control" readonly style="background-color: #f8f9fa;"
+                 value="<?php echo $template_mode ? htmlspecialchars($template_data['area_total'] ?? '') : ''; ?>">
+        </div>
+        <div class="col-md-2 col-sm-6">
+          <label class="form-label">Descuento sugerido (%)</label>
+          <input id="descuento_sugerido" name="descuento_sugerido" type="text" class="form-control" readonly style="background-color: #f8f9fa;">
+        </div>
+        <div class="col-md-8"></div>
+        <div class="col-md-4">
+          <label class="form-label">Escaleras</label>
+          <input id="escaleras" name="escaleras" type="text" class="form-control"
+                 value="<?php echo $template_mode ? htmlspecialchars($template_data['escaleras'] ?? '') : ''; ?>">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Arnes</label>
+          <input id="arnes" name="arnes" type="number" class="form-control" value="0"
+                 value="<?php echo $template_mode ? htmlspecialchars($template_data['arnes'] ?? '0') : '0'; ?>">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Costo adicional</label>
+          <input id="costo_adicional" name="costo_adicional" type="number" class="form-control"
+                 value="<?php echo $template_mode ? htmlspecialchars($template_data['costo_adicional'] ?? '') : ''; ?>">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Descripción costo adicional</label>
+          <textarea id="descripcion_costo_adicional" name="descripcion_costo_adicional" class="form-control" rows="4"><?php echo $template_mode ? htmlspecialchars($template_data['descripcion_costo_adicional'] ?? '') : ''; ?></textarea>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Detalles/Observaciones adicionales</label>
+          <textarea id="detalles_adicionales" name="detalles_adicionales" class="form-control" rows="4"><?php echo $template_mode ? htmlspecialchars($template_data['detalles'] ?? '') : ''; ?></textarea>
         </div>
       </div>
+    </div>
+  </div>
 
-    <div class="card mb-3">
-      <div class="card-body">
-        <h5 class="card-title">Items</h5>
-        <div id="itemsContainer">
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="card-title">Items</h5>
+      <div id="itemsContainer">
+        <?php if ($template_mode && !empty($template_items)): ?>
+          <?php foreach ($template_items as $index => $item): ?>
+            <div class="row g-3 mb-2 item-row">
+              <div class="col-md-6">
+                <input name="detalle[]" class="form-control" placeholder="Detalle del ítem" required
+                       value="<?php echo htmlspecialchars($item['detalle'] ?? ''); ?>">
+              </div>
+              <div class="col-md-2">
+                <input name="ancho[]" type="number" class="form-control" placeholder="Ancho" required step="0.01"
+                       value="<?php echo htmlspecialchars($item['ancho'] ?? ''); ?>">
+              </div>
+              <div class="col-md-2">
+                <input name="alto[]" type="number" class="form-control" placeholder="Alto" required step="0.01"
+                       value="<?php echo htmlspecialchars($item['alto'] ?? ''); ?>">
+              </div>
+              <div class="col-md-2 d-flex align-items-center">
+                <button type="button" class="btn btn-danger btn-sm remove-item">Eliminar</button>
+              </div>
+            </div>
+          <?php endforeach; ?>
+        <?php else: ?>
+          <!-- Default empty item row -->
           <div class="row g-3 mb-2 item-row">
             <div class="col-md-6">
               <input name="detalle[]" class="form-control" placeholder="Detalle del ítem" required>
             </div>
             <div class="col-md-2">
-              <input name="alto[]" type="number" class="form-control" placeholder="Alto" required>
+              <input name="ancho[]" type="number" class="form-control" placeholder="Ancho" required step="0.01">
             </div>
             <div class="col-md-2">
-              <input name="ancho[]" type="number" class="form-control" placeholder="Ancho" required>
+              <input name="alto[]" type="number" class="form-control" placeholder="Alto" required step="0.01">
             </div>
             <div class="col-md-2 d-flex align-items-center">
               <button type="button" class="btn btn-danger btn-sm remove-item">Eliminar</button>
             </div>
           </div>
-        </div>
-        <div class="mt-2">
-          <button id="addItem" type="button" class="btn btn-outline-primary btn-sm">Agregar ítem</button>
-        </div>
+        <?php endif; ?>
+      </div>
+      <div class="mt-2">
+        <button id="addItem" type="button" class="btn btn-outline-primary btn-sm">Agregar ítem</button>
       </div>
     </div>
+  </div>
 
-    <div class="d-flex gap-2">
-      <button id="save" class="btn btn-success" type="button">Crear proforma</button>
-    </div>
-  </form>
+  <div class="d-flex gap-2">
+    <button id="save" class="btn btn-success" type="button">Crear Proforma</button>
+  </div>
+</form>
 </div>
 
 <script>
+// Pass discount configuration from PHP to JavaScript
+const discountConfig = <?php echo json_encode($discountConfig); ?>;
+
 // Populate editable client fields when a client is selected
 document.getElementById('clienteSelect').addEventListener('change', function(e){
   const opt = this.options[this.selectedIndex];
@@ -159,20 +259,27 @@ document.getElementById('addItem').addEventListener('click', function(){
   // clear inputs
   clone.querySelectorAll('input').forEach(i => i.value = '');
   itemsContainer.appendChild(clone);
+  
+  // Update calculations after adding new item
+  updateCalculations();
 });
 
 itemsContainer.addEventListener('click', function(e){
   if (e.target && e.target.classList.contains('remove-item')) {
     const row = e.target.closest('.item-row');
     if (!row) return;
+    
     // don't remove the last row
     const rows = itemsContainer.querySelectorAll('.item-row');
     if (rows.length <= 1) {
       // clear fields instead
       row.querySelectorAll('input').forEach(i => i.value = '');
-      return;
+    } else {
+      row.remove();
     }
-    row.remove();
+    
+    // Update calculations after removal
+    updateCalculations();
   }
 });
 
@@ -270,6 +377,7 @@ document.getElementById('save').addEventListener('click', function(){
       console.log('Proforma ID:', result.proforma_id);
       // Redirect to proforma view page with the new ID
       window.location.href = 'proforma.php?id=' + result.proforma_id;
+      alert('Proforma creada con éxito. ID: ' + result.proforma_id);
     } else {
       alert('Error: ' + result.error);
     }
@@ -279,6 +387,49 @@ document.getElementById('save').addEventListener('click', function(){
     alert('Error al guardar la proforma');
   });
 });
+// Function to calculate total area and suggested discount using DB thresholds
+function updateCalculations() {
+  const rows = itemsContainer.querySelectorAll('.item-row');
+  let totalArea = 0;
+  
+  // Calculate total area
+  rows.forEach(row => {
+    const ancho = parseFloat(row.querySelector('input[name="ancho[]"]').value) || 0;
+    const alto = parseFloat(row.querySelector('input[name="alto[]"]').value) || 0;
+    totalArea += ancho * alto;
+  });
+  
+  // Update area total field
+  document.getElementById('area_total').value = totalArea.toFixed(2) + ' m²';
+  
+  // Calculate suggested discount based on area using DB thresholds
+  let suggestedDiscount = 0;
+  
+  // Use the discount thresholds from your database
+  if (totalArea >= discountConfig.a_3) {
+    suggestedDiscount = discountConfig.discount_3 || 15; // Fallback to 15 if not set
+  } else if (totalArea >= discountConfig.a_2) {
+    suggestedDiscount = discountConfig.discount_2 || 10; // Fallback to 10 if not set
+  } else if (totalArea >= discountConfig.a_1) {
+    suggestedDiscount = discountConfig.discount_1 || 5; // Fallback to 5 if not set
+  }
+  
+  // Update suggested discount field
+  document.getElementById('descuento_sugerido').value = suggestedDiscount + '%';
+  
+  // Optional: Auto-fill the discount field with the suggested value
+  document.getElementById('descuento').value = suggestedDiscount;
+}
+
+// Call updateCalculations function:
+itemsContainer.addEventListener('input', function(e) {
+  if (e.target && (e.target.name === 'ancho[]' || e.target.name === 'alto[]')) {
+    updateCalculations();
+  }
+});
+
+// Also call updateCalculations on page load
+document.addEventListener('DOMContentLoaded', updateCalculations);
 </script>
 <script src="../CSS/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 </body>
