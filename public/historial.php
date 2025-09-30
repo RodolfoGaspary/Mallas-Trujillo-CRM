@@ -47,7 +47,7 @@ $rows = $stmt->fetchAll();
     </style>
 </head>
 <body>
-<?php include 'nav.php'; ?>
+<?php include '../calls/nav.php'; ?>
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1>Historial de Proformas</h1>
@@ -124,7 +124,7 @@ $rows = $stmt->fetchAll();
             const sortVal = sortSelect.value;
             
             // Build query parameters
-            let url = 'search.php?';
+            let url = '../calls/search.php?';
             const params = new URLSearchParams();
             
             if (nameQuery) {

@@ -75,7 +75,7 @@ $discountConfig = [
   <link rel="stylesheet" href="../CSS/bootstrap-5.3.8-dist/css/bootstrap.min.css">
 </head>
 <body>
-<?php include 'nav.php'; ?>
+<?php include '../calls/nav.php'; ?>
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="mb-0">Nueva proforma</h1>
@@ -125,7 +125,53 @@ $discountConfig = [
       </div>
     </div>
   </div>
-
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="card-title">Items</h5>
+      <div id="itemsContainer">
+        <?php if ($template_mode && !empty($template_items)): ?>
+          <?php foreach ($template_items as $index => $item): ?>
+            <div class="row g-3 mb-2 item-row">
+              <div class="col-md-6">
+                <input name="detalle[]" class="form-control" placeholder="Detalle del ítem" required
+                       value="<?php echo htmlspecialchars($item['detalle'] ?? ''); ?>">
+              </div>
+              <div class="col-md-2">
+                <input name="ancho[]" type="number" class="form-control" placeholder="Ancho" required step="0.01"
+                       value="<?php echo htmlspecialchars($item['ancho'] ?? ''); ?>">
+              </div>
+              <div class="col-md-2">
+                <input name="alto[]" type="number" class="form-control" placeholder="Alto" required step="0.01"
+                       value="<?php echo htmlspecialchars($item['alto'] ?? ''); ?>">
+              </div>
+              <div class="col-md-2 d-flex align-items-center">
+                <button type="button" class="btn btn-danger btn-sm remove-item">Eliminar</button>
+              </div>
+            </div>
+          <?php endforeach; ?>
+        <?php else: ?>
+          <!-- Default empty item row -->
+          <div class="row g-3 mb-2 item-row">
+            <div class="col-md-6">
+              <input name="detalle[]" class="form-control" placeholder="Detalle del ítem" required>
+            </div>
+            <div class="col-md-2">
+              <input name="ancho[]" type="number" class="form-control" placeholder="Ancho" required step="0.01">
+            </div>
+            <div class="col-md-2">
+              <input name="alto[]" type="number" class="form-control" placeholder="Alto" required step="0.01">
+            </div>
+            <div class="col-md-2 d-flex align-items-center">
+              <button type="button" class="btn btn-danger btn-sm remove-item">Eliminar</button>
+            </div>
+          </div>
+        <?php endif; ?>
+      </div>
+      <div class="mt-2">
+        <button id="addItem" type="button" class="btn btn-outline-primary btn-sm">Agregar ítem</button>
+      </div>
+    </div>
+  </div>
   <div class="card mb-3">
     <div class="card-body">
       <h5 class="card-title">Proforma</h5>
@@ -182,53 +228,6 @@ $discountConfig = [
     </div>
   </div>
 
-  <div class="card mb-3">
-    <div class="card-body">
-      <h5 class="card-title">Items</h5>
-      <div id="itemsContainer">
-        <?php if ($template_mode && !empty($template_items)): ?>
-          <?php foreach ($template_items as $index => $item): ?>
-            <div class="row g-3 mb-2 item-row">
-              <div class="col-md-6">
-                <input name="detalle[]" class="form-control" placeholder="Detalle del ítem" required
-                       value="<?php echo htmlspecialchars($item['detalle'] ?? ''); ?>">
-              </div>
-              <div class="col-md-2">
-                <input name="ancho[]" type="number" class="form-control" placeholder="Ancho" required step="0.01"
-                       value="<?php echo htmlspecialchars($item['ancho'] ?? ''); ?>">
-              </div>
-              <div class="col-md-2">
-                <input name="alto[]" type="number" class="form-control" placeholder="Alto" required step="0.01"
-                       value="<?php echo htmlspecialchars($item['alto'] ?? ''); ?>">
-              </div>
-              <div class="col-md-2 d-flex align-items-center">
-                <button type="button" class="btn btn-danger btn-sm remove-item">Eliminar</button>
-              </div>
-            </div>
-          <?php endforeach; ?>
-        <?php else: ?>
-          <!-- Default empty item row -->
-          <div class="row g-3 mb-2 item-row">
-            <div class="col-md-6">
-              <input name="detalle[]" class="form-control" placeholder="Detalle del ítem" required>
-            </div>
-            <div class="col-md-2">
-              <input name="ancho[]" type="number" class="form-control" placeholder="Ancho" required step="0.01">
-            </div>
-            <div class="col-md-2">
-              <input name="alto[]" type="number" class="form-control" placeholder="Alto" required step="0.01">
-            </div>
-            <div class="col-md-2 d-flex align-items-center">
-              <button type="button" class="btn btn-danger btn-sm remove-item">Eliminar</button>
-            </div>
-          </div>
-        <?php endif; ?>
-      </div>
-      <div class="mt-2">
-        <button id="addItem" type="button" class="btn btn-outline-primary btn-sm">Agregar ítem</button>
-      </div>
-    </div>
-  </div>
 
   <div class="d-flex gap-2">
     <button id="save" class="btn btn-success" type="button">Crear Proforma</button>
@@ -364,7 +363,7 @@ document.getElementById('save').addEventListener('click', function(){
   });
 
   // Send data to server using AJAX
-  fetch('save_proforma.php', {
+  fetch('../calls/save_proforma.php', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -14,7 +14,7 @@
     </style>
 </head>
 <body>
-<?php include 'nav.php'; ?>
+<?php include '../calls/nav.php'; ?>
 <div class="container py-4">
     <div class="text-center mb-3"><h1>Mallas Trujillo</h1></div>
     <hr>

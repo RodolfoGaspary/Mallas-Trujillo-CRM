@@ -104,11 +104,11 @@ if (!empty($items)) {
   </style>
 </head>
 <body>
-<?php include 'nav.php'; ?>
+<?php include '../calls/nav.php'; ?>
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="mb-0">Proforma #<?php echo $row['id_proformas']; ?></h1>
-    <a class="btn btn-success" href="create_pdf.php?id=<?php echo $row['id_proformas']; ?>">Enviar como PDF</a>
+    <a class="btn btn-success" href="../calls/pdf.php?id=<?php echo $row['id_proformas']; ?>" target="_blank">Descargar PDF</a>
   </div>
   <div class="mb-3">
     <a class="btn btn-secondary" href="nueva.php?template=<?php echo $id; ?>">Editar Proforma</a>

@@ -28,7 +28,7 @@ try {
   <link rel="stylesheet" href="../CSS/bootstrap-5.3.8-dist/css/bootstrap.min.css">
 </head>
 <body> 
-<?php include 'nav.php'; ?>
+<?php include '../calls/nav.php'; ?>
 <div class="container py-4">
   <div class="mb-3">
     <h1 class="text-center">Precios</h1>
@@ -93,7 +93,7 @@ try {
 
     console.log('Sending data:', data);
 
-    fetch('update_precio.php', {
+    fetch('../calls/update_precio.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
