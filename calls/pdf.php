@@ -68,6 +68,7 @@ if (empty($items)) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="icon" type="image/jpg" href="../Assets/mt_logo.jpg">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Proforma #<?php echo $row['id_proformas']; ?></title>

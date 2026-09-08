@@ -1,11 +1,12 @@
 <!doctype html>
 <html lang="en">
 <head>
+    <link rel="icon" type="image/jpg" href="Assets/mt_logo.jpg">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Mallas Trujillo</title>
     <!-- Use CDN for now to ensure it works -->
-   <link rel="stylesheet" href="../CSS/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+   <link rel="stylesheet" href="CSS/bootstrap-5.3.8-dist/css/bootstrap.min.css">
     <style>
         /* small local overrides */
         body { font-family: Arial, sans-serif; }
@@ -14,7 +15,7 @@
     </style>
 </head>
 <body>
-<?php include '../calls/nav.php'; ?>
+<?php include 'calls/nav.php'; ?>
 <div class="container py-4">
     <div class="text-center mb-3"><h1>Mallas Trujillo</h1></div>
     <hr>
@@ -26,6 +27,6 @@
 </div>
 
 <!-- Bootstrap JS at the bottom -->
-<script src="../CSS/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+<script src="CSS/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

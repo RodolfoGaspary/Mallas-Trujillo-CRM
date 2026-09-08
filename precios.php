@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../Backend/db_connect.php';
+require_once __DIR__ . '/Backend/db_connect.php';
 
 // Fetch existing clients for the dropdown
 try {
@@ -22,13 +22,14 @@ try {
 <!doctype html>
 <html lang="en">
 <head>
+  <link rel="icon" type="image/jpg" href="Assets/mt_logo.jpg">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Modificar Precios</title>
-  <link rel="stylesheet" href="../CSS/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="CSS/bootstrap-5.3.8-dist/css/bootstrap.min.css">
 </head>
 <body> 
-<?php include '../calls/nav.php'; ?>
+<?php include 'calls/nav.php'; ?>
 <div class="container py-4">
   <div class="mb-3">
     <h1 class="text-center">Precios</h1>
@@ -75,7 +76,7 @@ try {
   </div>
 </div>
 </div>
-<script src="../CSS/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+<script src="CSS/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.getElementById('precioForm').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -93,7 +94,7 @@ try {
 
     console.log('Sending data:', data);
 
-    fetch('../calls/update_precio.php', {
+    fetch('calls/update_precio.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

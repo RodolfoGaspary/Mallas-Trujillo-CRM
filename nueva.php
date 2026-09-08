@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../Backend/db_connect.php';
+require_once __DIR__ . '/Backend/db_connect.php';
 
 // Fetch existing clients for the dropdown
 try {
@@ -69,13 +69,14 @@ $discountConfig = [
 <!doctype html>
 <html lang="en">
 <head>
+  <link rel="icon" type="image/jpg" href="Assets/mt_logo.jpg">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Nueva Proforma</title>
-  <link rel="stylesheet" href="../CSS/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="CSS/bootstrap-5.3.8-dist/css/bootstrap.min.css">
 </head>
 <body>
-<?php include '../calls/nav.php'; ?>
+<?php include 'calls/nav.php'; ?>
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="mb-0">Nueva proforma</h1>
@@ -363,7 +364,7 @@ document.getElementById('save').addEventListener('click', function(){
   });
 
   // Send data to server using AJAX
-  fetch('../calls/save_proforma.php', {
+  fetch('calls/save_proforma.php', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -430,6 +431,6 @@ itemsContainer.addEventListener('input', function(e) {
 // Also call updateCalculations on page load
 document.addEventListener('DOMContentLoaded', updateCalculations);
 </script>
-<script src="../CSS/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+<script src="CSS/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

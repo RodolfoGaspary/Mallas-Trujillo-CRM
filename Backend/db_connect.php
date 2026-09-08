@@ -3,17 +3,8 @@
 // Put this file in Backend/db_connect.php and include/require it where needed.
 
 // Load configuration from project-level config.php (kept outside public)
-$configPath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'config.php';
-if (file_exists($configPath)) {
-	require $configPath; // provides $DB_HOST, $DB_NAME, $DB_USER, $DB_PASS, $SHOW_DB_ERRORS
-} else {
-	// Fallback defaults (XAMPP typical defaults)
-	$DB_HOST = '127.0.0.1';
-	$DB_NAME = 'mallas_trujillo';
-	$DB_USER = 'root';
-	$DB_PASS = '';
-	$SHOW_DB_ERRORS = true;
-}
+$configPath = 'config.php';
+require $configPath; // provides $DB_HOST, $DB_NAME, $DB_USER, $DB_PASS, $SHOW_DB_ERRORS
 
 // Returns a PDO instance (singleton)
 function get_pdo_connection()

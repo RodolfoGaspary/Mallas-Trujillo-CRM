@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../Backend/db_connect.php';
+require_once __DIR__ . '/Backend/db_connect.php';
 
 // Basic input handling
 $q = trim($_GET['q'] ?? '');
@@ -35,10 +35,11 @@ $rows = $stmt->fetchAll();
 <!doctype html>
 <html lang="en">
 <head>
+    <link rel="icon" type="image/jpg" href="Assets/mt_logo.jpg">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Historial de Proformas</title>
-    <link rel="stylesheet" href="../CSS/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="CSS/bootstrap-5.3.8-dist/css/bootstrap.min.css">
     <style>
         /* small local overrides */
         body { font-family: Arial, sans-serif; }
@@ -47,7 +48,7 @@ $rows = $stmt->fetchAll();
     </style>
 </head>
 <body>
-<?php include '../calls/nav.php'; ?>
+<?php include 'calls/nav.php'; ?>
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1>Historial de Proformas</h1>
@@ -124,7 +125,7 @@ $rows = $stmt->fetchAll();
             const sortVal = sortSelect.value;
             
             // Build query parameters
-            let url = '../calls/search.php?';
+            let url = 'calls/search.php?';
             const params = new URLSearchParams();
             
             if (nameQuery) {
@@ -182,7 +183,7 @@ $rows = $stmt->fetchAll();
         // Initial fetch
         fetchResults();
     </script>
-    <script src="../CSS/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="CSS/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 </div>
 </body>
 </html>

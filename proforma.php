@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../Backend/db_connect.php';
+require_once __DIR__ . '/Backend/db_connect.php';
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($id <= 0) {
@@ -95,20 +95,21 @@ if (!empty($items)) {
 <!doctype html>
 <html lang="en">
 <head>
+  <link rel="icon" type="image/jpg" href="Assets/mt_logo.jpg">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Proforma #<?php echo $row['id_proformas']; ?></title>
-  <link rel="stylesheet" href="../CSS/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="CSS/bootstrap-5.3.8-dist/css/bootstrap.min.css">
   <style>
     .dt{font-weight:bold}
   </style>
 </head>
 <body>
-<?php include '../calls/nav.php'; ?>
+<?php include 'calls/nav.php'; ?>
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="mb-0">Proforma #<?php echo $row['id_proformas']; ?></h1>
-    <a class="btn btn-success" href="../calls/pdf.php?id=<?php echo $row['id_proformas']; ?>" target="_blank">Descargar PDF</a>
+    <a class="btn btn-success" href="calls/pdf.php?id=<?php echo $row['id_proformas']; ?>" target="_blank">Descargar PDF</a>
   </div>
   <div class="mb-3">
     <a class="btn btn-secondary" href="nueva.php?template=<?php echo $id; ?>">Editar Proforma</a>
@@ -180,6 +181,6 @@ if (!empty($items)) {
       </div>
     </div>
 </div>
-<script src="../CSS/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+<script src="CSS/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
