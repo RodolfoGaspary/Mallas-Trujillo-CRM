@@ -1,18 +1,15 @@
-# Ignore local config with credentials
+# Credentials — copy config.example.php to config.php and edit locally
 config.php
+Backend/config.php
 
-# Ignore PHPStorm / VSCode project files
-.idea/
+# Local database dumps
+*.local.sql
+
+# Editor and OS noise
 .vscode/
-
-# Dependency folders
-vendor/
-node_modules/
-
-# OS files
-Thumbs.db
-ehthumbs.db
+.idea/
 .DS_Store
+Thumbs.db
 
-# Database dumps (optional - keep if you version seeds intentionally)
-# *.sql
+# Logs
+*.log
